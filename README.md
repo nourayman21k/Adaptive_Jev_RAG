@@ -41,7 +41,7 @@ If the router's confidence is below `THRESHOLD = 0.7`, the query goes to `rag_re
 |---|---|
 | [adaptive.ipynb](adaptive.ipynb) | Full pipeline with the **JEV** router, plus the JEV router benchmark and the RAGAS evaluation |
 | [adaptive_bert.ipynb](adaptive_bert.ipynb) | The same pipeline with the **BERT** router, its benchmark and the JEV-vs-BERT comparison table |
-| [jev_optimizations.ipynb](jev_optimizations.ipynb) | JEV speed-ups (prefix caching, batching, 4-bit, smaller models) benchmarked against BERT |
+| [jev_optimizations.ipynb](jev_optimizations.ipynb) | Speed-ups for the 4B JEV router (prefix caching, batching, 4-bit) benchmarked against BERT |
 | [eval/router_dataset.json](eval/router_dataset.json) | Routing queries: 150 for training (50 per route), 30 held-out test queries (10 per route) |
 | [eval/ragas_testset.json](eval/ragas_testset.json) | 10 RAGAS questions, one per paper, with reference answers written from the papers |
 | [results/](results/) | Every number in this README, as JSON/CSV (see [Result files](#result-files)) |
@@ -140,70 +140,56 @@ RAPTOR?", "What is CRAG?"). HyDE was not one of them.
 
 ### Making JEV cheaper
 
-[jev_optimizations.ipynb](jev_optimizations.ipynb) tries four ways to close the gap with BERT, on the same 30 test
-queries, the same prompt and the same timing method:
+[jev_optimizations.ipynb](jev_optimizations.ipynb) keeps the same Qwen3.5-4B model and tries three ways to close the
+gap with BERT, on the same 30 test queries, the same prompt and the same timing method:
 
 - **Prefix caching:** the instruction and route descriptions are the same for every query, so their KV cache is
   computed once and reused. Only the query and the answer options are processed per call. The token sequence the model
-  sees is unchanged: on Qwen3.5-4B all 30 choices matched the normal path and probabilities differed by at most 0.003.
-- **Smaller models:** Qwen3.5-0.8B, and Qwen2.5-1.5B-Instruct. Qwen3.5 has no 1.5B size, so that one is from the older
-  Qwen2.5 family. Qwen3.5-2B was planned but not run because its download stalled.
+  sees is unchanged: all 30 choices matched the normal path and probabilities differed by at most 0.003.
 - **Batching:** all 30 queries in one `decide_many` call. Latency is total time / 30.
 - **4-bit quantization:** NF4 through bitsandbytes, with bfloat16 compute.
 
-Every model was run in all three call modes, so each technique is also tested in combination with 4-bit. "After
-fallback" applies the pipeline's rule that a confidence below 0.7 sends the query to `rag_retrieval`.
+Both the bf16 and the 4-bit model were run in all three call modes, so 4-bit is also tested combined with prefix
+caching and with batching. "After fallback" applies the pipeline's rule that a confidence below 0.7 sends the query to
+`rag_retrieval`.
 
-| Router | Mode | Accuracy | After 0.7 fallback | Fallbacks | Mean latency | Tokens per query (read / computed) | Weights on GPU | Peak GPU |
-|---|---|---|---|---|---|---|---|---|
-| Qwen3.5-4B bf16 | full | 100 % | 100 % | 0 | 156.3 ms | 198 / 198 | 8,022 MB | 8,118 MB |
-| | prefix-cached | 100 % | 100 % | 0 | 147.7 ms | 198 / 46 | | 8,198 MB |
-| | batched | 100 % | 100 % | 0 | 64.4 ms | 198 / 198 | | 10,046 MB |
-| Qwen3.5-4B 4-bit | full | 100 % | 100 % | 0 | 194.8 ms | 198 / 198 | 3,203 MB | 3,268 MB |
-| | prefix-cached | 100 % | 100 % | 0 | 173.9 ms | 198 / 46 | | 3,352 MB |
-| | batched | 100 % | 100 % | 0 | 64.6 ms | 198 / 198 | | 5,202 MB |
-| **Qwen2.5-1.5B bf16** | full | 76.7 % | 73.3 % | 2 | 55.9 ms | 208 / 208 | 2,976 MB | 2,990 MB |
-| | prefix-cached | 76.7 % | 70.0 % | 3 | 62.6 ms | 208 / 40 | | 3,001 MB |
-| | batched | 73.3 % | 70.0 % | 3 | 15.0 ms | 208 / 208 | | 3,396 MB |
-| **Qwen2.5-1.5B 4-bit** | full | 70.0 % | 63.3 % | 4 | 77.8 ms | 208 / 208 | 1,190 MB | 1,223 MB |
-| | prefix-cached | 70.0 % | 66.7 % | 2 | 92.4 ms | 208 / 40 | | 1,228 MB |
-| | batched | 70.0 % | 63.3 % | 3 | 15.1 ms | 208 / 208 | | 1,608 MB |
-| Qwen3.5-0.8B bf16 | full | 93.3 % | 40.0 % | 18 | 112.5 ms | 198 / 198 | 1,467 MB | 1,498 MB |
-| | prefix-cached | 96.7 % | 36.7 % | 19 | 108.6 ms | 198 / 46 | | 1,535 MB |
-| | batched | 96.7 % | 40.0 % | 18 | 16.1 ms | 198 / 198 | | 2,419 MB |
-| **BERT (fine-tuned)** | full | **96.7 %** | **96.7 %** | 0 | **13.8 ms** | **12 / 12** | | **1,320 MB** |
+| Router | Mode | Accuracy | After 0.7 fallback | Mean latency | Median | p95 | Tokens per query (read / computed) | Weights on GPU | Peak GPU |
+|---|---|---|---|---|---|---|---|---|---|
+| Qwen3.5-4B bf16 | full | 100 % | 100 % | 97.1 ms | 96.7 ms | 109.8 ms | 198 / 198 | 8,022 MB | 8,118 MB |
+| | prefix-cached | 100 % | 100 % | 91.2 ms | 81.6 ms | 131.0 ms | 198 / 46 | | 8,198 MB |
+| | batched | 100 % | 100 % | 64.1 ms | | | 198 / 198 | | 10,046 MB |
+| **Qwen3.5-4B 4-bit** | full | 100 % | 100 % | 115.3 ms | 113.7 ms | 132.4 ms | 198 / 198 | **3,203 MB** | **3,268 MB** |
+| | prefix-cached | 100 % | 100 % | 129.6 ms | 132.1 ms | 144.8 ms | 198 / 46 | | 3,352 MB |
+| | batched | 100 % | 100 % | 66.0 ms | | | 198 / 198 | | 5,202 MB |
+| **BERT (fine-tuned)** | full | **96.7 %** | **96.7 %** | **13.8 ms** | **9.7 ms** | **29.3 ms** | **12 / 12** | | **1,320 MB** |
 
-Load times: 4B 25.6 s, 4B 4-bit 24.3 s, 1.5B 5.9 s, 1.5B 4-bit 5.9 s, 0.8B 3.6 s. In this session the unmodified 4B
-measured 156 ms per query, against 175 ms in `adaptive.ipynb`; that is normal run-to-run variation.
+No query fell below the 0.7 threshold in any setup. Mean confidence was 0.9985 for bf16 and 0.9996 for 4-bit (lowest
+0.9739 and 0.9960). Load time: 24.3 s for bf16, 18.0 s for 4-bit.
+
+**Run-to-run variation is large on this laptop GPU.** The same setup (4B bf16, full prompt) measured 175 ms per query in
+`adaptive.ipynb`, 156 ms in an earlier run of this notebook and 97 ms in the run above, because the GPU's clock speed
+depends on power and temperature. Treat latency differences under about 20 % as noise. The batched result was the most
+stable: 64–66 ms per query in every run.
 
 **What each technique did**
 
-- **Batching is the only big latency win.** It brought the 4B model from 156 to 64 ms per query (2.4×) and the small
-  models to 15–16 ms, close to BERT. That only applies when many queries arrive at once. A chat app routes one query at
-  a time, where batching does not help.
-- **4-bit is a memory win but a speed loss.** The 4B model needs 2.5× less memory (3.2 GB instead of 8.0 GB) with no
-  accuracy loss, but is 25 % slower per query (195 vs 156 ms) because the weights are dequantized on every call. For the
-  1.5B model, 4-bit cost 6.7 accuracy points and 39 % more latency.
-- **Prefix caching cuts compute, not time.** It skips 77–81 % of the prompt tokens (198 → 46), but saved only 4–11 %
-  of latency on Qwen3.5 and made Qwen2.5 *slower* (copying the cache costs more than it saves). With one query at a time
-  the GPU is not limited by token count, so fewer tokens barely matter.
-- **Smaller models lose accuracy or calibration.**
-  - **Qwen2.5-1.5B** is the fastest JEV per query (55.9 ms), but drops to 76.7 % accuracy. Its mistakes are mostly
-    general-knowledge questions sent to `rag_retrieval` (5 of 7), such as "What is a database index?" and "Who wrote the
-    novel 1984?".
-  - **Qwen3.5-0.8B** picks the right route 93–97 % of the time, but is rarely sure about it (mean confidence 0.64). That
-    pushes 18 of 30 queries under the 0.7 threshold, so **inside the pipeline only 40 % are routed correctly**. It would
-    need a lower threshold, which brings back its wrong answers.
-- **Hidden cost: slow fallback kernels.** Qwen3.5-0.8B (752M parameters, 112 ms) is *slower* than Qwen2.5-1.5B (1,544M,
-  56 ms). Qwen3.5's linear-attention layers run on a slow reference PyTorch implementation because
-  `flash-linear-attention` and `causal-conv1d` are not installed. Both need Triton or a CUDA build, which is hard on
-  Windows. On Linux they would likely speed every Qwen3.5 variant up considerably.
+- **4-bit is the clear win for memory.** The model needs 2.5× less GPU memory (3.3 GB peak instead of 8.1 GB) with the
+  same 100 % accuracy and slightly higher confidence. It is somewhat slower per query (115 vs 97 ms here, 195 vs 156 ms
+  in the earlier run) because the weights are dequantized on every call.
+- **Batching is the only large latency win**, 64–66 ms per query against 97–156 ms one at a time. It only helps when
+  many queries arrive at once. A chat app routes one query at a time, where it does not apply. Batching 30 queries also
+  raises peak memory (10.0 GB for bf16, 5.2 GB for 4-bit).
+- **Prefix caching cuts compute, not time.** It skips 77 % of the prompt tokens (198 → 46), but the latency change
+  (−6 % for bf16, +12 % for 4-bit) is within run-to-run noise. With one query at a time the GPU is not limited by token
+  count, so processing fewer tokens barely matters.
+- **Hidden cost: slow fallback kernels.** transformers warns that Qwen3.5's linear-attention layers run on a slow
+  reference PyTorch implementation because `flash-linear-attention` and `causal-conv1d` are not installed. Both need
+  Triton or a CUDA build, which is hard on Windows. On Linux they would likely make every setup above faster.
 
-**Verdict:** no JEV configuration beats BERT. Per query, the fastest JEV (Qwen2.5-1.5B, 55.9 ms) is 4× slower than BERT
-and 20 points less accurate. The most accurate JEV (Qwen3.5-4B 4-bit, 100 %) is 14× slower and uses 2.5× BERT's
-memory. JEV only reaches BERT's speed when 30 queries are batched together, and then only the 4B model stays accurate
-(64 ms per query). The best JEV setup for this pipeline is **Qwen3.5-4B in 4-bit**: same accuracy as before with 60 %
-less GPU memory, at a cost of about 40 ms per query.
+**Verdict:** no 4B setup beats BERT. Per query, the fastest 4B setup (prefix-cached bf16, 91 ms) is still 6.6× slower
+than BERT and reads 16× more tokens (3.7× more even counting only the uncached ones). Batched, it is 4.6× slower. The
+best JEV setup for this pipeline is **Qwen3.5-4B in 4-bit**: the same 100 % accuracy with 60 % less GPU memory, at the
+cost of about 20 % more latency per query. Its memory is still 2.5× BERT's.
 
 ### RAGAS: the RAG part
 
@@ -285,7 +271,7 @@ claims not found in the chunks.
 | File | Contents |
 |---|---|
 | `results/router_jev.json`, `results/router_bert.json` | Router summary (accuracy, F1, confusion matrix, latency, tokens, memory, timings) and one row per test query |
-| `results/router_jev_variants.json` | Every JEV model and call mode from `jev_optimizations.ipynb`, with one row per test query |
+| `results/router_jev_variants.json` | Both 4B setups (bf16, 4-bit) in every call mode from `jev_optimizations.ipynb`, with one row per test query |
 | `results/rag_runs.json` | For each RAGAS question: the answer, the chunks used, node path, Groq tokens and latency |
 | `results/ragas_scores.csv` | RAGAS scores per question |
 | `results/ragas_summary.json` | RAGAS means and minimums, pipeline cost totals and judge usage |
