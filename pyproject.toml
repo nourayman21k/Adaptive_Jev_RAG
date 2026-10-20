@@ -40,6 +40,7 @@ dependencies = [
     "python-dotenv>=1.2.2",
     "python-jose[cryptography]>=3.5.0",
     "python-multipart>=0.0.32",
+    "ragas>=0.4.3",
     "reportlab>=5.0.0",
     "sentence-transformers>=5.6.0",
     "tavily-python>=0.7.26",
@@ -72,3 +73,8 @@ open-alternative-jev = { git = "https://github.com/ikermoel/open-alternative-jev
 dev = [
     "pytest>=8",
 ]
+
+[tool.uv]
+# ragas pulls in scikit-network only for synthetic testset generation; it has no Python 3.14 wheel
+# and needs MSVC to build, so it is excluded. Evaluation (ragas.evaluate) does not use it.
+override-dependencies = ["scikit-network; sys_platform == 'never'"]
