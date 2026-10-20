@@ -1,0 +1,52 @@
+[
+  {
+    "paper": "2004.04906v3.pdf (DPR)",
+    "question": "How does Dense Passage Retrieval train its dual encoder, and what are in-batch negatives?",
+    "reference": "DPR trains two BERT encoders, one for questions and one for passages, so that relevant question-passage pairs get a higher dot-product similarity than irrelevant ones. With in-batch negatives, for a mini-batch of B questions each paired with its relevant passage, the similarity matrix S = QP^T is computed; for each question the passages of the other questions in the batch serve as negatives (B-1 negatives per question), which reuses computation and effectively trains on B^2 question/passage pairs per batch. The best model uses gold passages from the same mini-batch plus one BM25 hard negative passage per question."
+  },
+  {
+    "paper": "2005.11401v4.pdf (RAG)",
+    "question": "What is the difference between the RAG-Sequence and RAG-Token models?",
+    "reference": "RAG-Sequence uses the same retrieved document to generate the complete output sequence: the document is treated as a single latent variable and the sequence probability is marginalized over the top-K documents. RAG-Token can draw a different latent document for each target token: for every output token the generator produces a distribution per document and marginalizes before moving to the next token, so it can combine content from several documents in one answer."
+  },
+  {
+    "paper": "2212.10496v1.pdf (HyDE)",
+    "question": "How does HyDE use a hypothetical document to perform zero-shot dense retrieval?",
+    "reference": "Given a query, HyDE first instructs an instruction-following language model such as InstructGPT, zero-shot, to generate a hypothetical document that answers the query. This document captures relevance patterns but may contain false details. An unsupervised contrastively learned encoder such as Contriever then encodes the document into an embedding vector, which identifies a neighborhood in the corpus embedding space where similar real documents are retrieved by vector similarity. The encoder's dense bottleneck filters out the incorrect details, and no relevance labels are needed."
+  },
+  {
+    "paper": "2212.10511v4.pdf (When Not to Trust Language Models)",
+    "question": "According to the PopQA study, for which entities does retrieval augmentation help most, and what is adaptive retrieval?",
+    "reference": "Language models struggle with less popular, long-tail factual knowledge, and retrieval augmentation helps significantly for these less popular entities, while scaling the model mainly improves memorization of popular knowledge. For popular entities, retrieval can even hurt. Adaptive Retrieval therefore retrieves non-parametric memories only when necessary: it uses retrieval for questions whose entity popularity is below a popularity threshold and does not retrieve for more popular entities, which improves performance and reduces inference cost."
+  },
+  {
+    "paper": "2305.06983v2.pdf (FLARE)",
+    "question": "How does FLARE decide when to retrieve during long-form generation?",
+    "reference": "FLARE (Forward-Looking Active REtrieval augmented generation) iteratively generates a temporary next sentence to anticipate upcoming content. If any token of that tentative sentence has a probability below a threshold theta, retrieval is triggered: the tentative sentence is used to form a query, relevant documents are retrieved, and the sentence is regenerated with them. If all tokens are confident, the sentence is accepted without retrieval. Theta = 0 never retrieves and theta = 1 retrieves for every sentence."
+  },
+  {
+    "paper": "2310.11511v1.pdf (Self-RAG)",
+    "question": "What are reflection tokens in Self-RAG and what are they used for?",
+    "reference": "Reflection tokens are special tokens added to the model vocabulary that Self-RAG learns to generate alongside normal text. There are four types: Retrieve (yes, no, continue) decides whether to retrieve; ISREL (relevant, irrelevant) judges whether a retrieved passage is relevant; ISSUP (fully supported, partially supported, no support) judges whether the generation is supported by the passage; and ISUSE (5 to 1) rates the overall usefulness of the response. ISREL, ISSUP and ISUSE are critique tokens. They let the model retrieve on demand, critique its own output, and rank candidate segments, enabling soft constraints or hard control at inference."
+  },
+  {
+    "paper": "2312.10997v5.pdf (RAG survey)",
+    "question": "What are the differences between Naive RAG, Advanced RAG, and Modular RAG?",
+    "reference": "Naive RAG follows a simple Retrieve-Read process of indexing, retrieval and generation: documents are chunked, embedded and stored, the top-k similar chunks are retrieved, and the LLM generates an answer from them. Advanced RAG keeps this chain-like process but adds pre-retrieval optimizations (better indexing, query rewriting, transformation and expansion) and post-retrieval optimizations (reranking and context compression) to improve retrieval quality. Modular RAG is the most flexible: it introduces new specialized modules such as search, memory and RAG-Fusion, allows modules to be replaced or rearranged, and supports patterns such as iterative and adaptive retrieval rather than a fixed sequential pipeline."
+  },
+  {
+    "paper": "2401.15884v3.pdf (CRAG)",
+    "question": "What does the retrieval evaluator in Corrective RAG do, and which actions can it trigger?",
+    "reference": "CRAG uses a lightweight retrieval evaluator, a fine-tuned T5-large model, to estimate the relevance of the retrieved documents to the query and return a confidence degree. Based on this confidence it triggers one of three actions: Correct, where the documents are refined into precise knowledge strips through decomposition, filtering and recomposition; Incorrect, where the retrieved documents are discarded and web search results are used instead; and Ambiguous, a soft action that combines both the refined documents and web search."
+  },
+  {
+    "paper": "2401.18059v1.pdf (RAPTOR)",
+    "question": "How does RAPTOR build its tree of recursive summaries?",
+    "reference": "RAPTOR splits the corpus into short contiguous chunks of about 100 tokens and embeds them with SBERT; these form the leaf nodes. It then clusters similar chunks using soft clustering based on Gaussian Mixture Models (with UMAP dimensionality reduction), so a chunk can belong to several clusters, and uses a language model to summarize each cluster. The summaries are re-embedded and the cycle of embedding, clustering and summarizing repeats until further clustering is infeasible, producing a multi-layer tree from the bottom up. At query time it retrieves with either tree traversal or the collapsed tree method."
+  },
+  {
+    "paper": "2403.14403v2.pdf (Adaptive-RAG)",
+    "question": "How does Adaptive-RAG use a query complexity classifier to choose a retrieval strategy?",
+    "reference": "Adaptive-RAG trains a smaller language model (T5) as a classifier that predicts the complexity of an incoming query with three labels: A means the query is straightforward and answered by the LLM alone without retrieval; B means moderate complexity, needing the single-step retrieval approach; C means the query is complex and needs the multi-step iterative approach. The classifier's training labels are collected automatically from which strategy actually answers correctly, preferring the simpler strategy on ties, plus the inductive biases of the datasets. This lets the system pick the simplest sufficient strategy, balancing accuracy and efficiency."
+  }
+]
