@@ -1,0 +1,346 @@
+{
+  "summary": {
+    "router": "JEV",
+    "n_test": 30,
+    "accuracy": 1.0,
+    "accuracy_after_fallback": 1.0,
+    "threshold": 0.7,
+    "fallback_count": 0,
+    "mean_confidence": 0.9985419495315466,
+    "macro_f1": 1.0,
+    "per_class": {
+      "direct_answer": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0
+      },
+      "web_search": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0
+      },
+      "rag_retrieval": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0
+      }
+    },
+    "confusion_matrix": {
+      "labels": [
+        "direct_answer",
+        "web_search",
+        "rag_retrieval"
+      ],
+      "matrix": [
+        [
+          10,
+          0,
+          0
+        ],
+        [
+          0,
+          10,
+          0
+        ],
+        [
+          0,
+          0,
+          10
+        ]
+      ]
+    },
+    "latency": {
+      "mean_ms": 174.8422399900543,
+      "median_ms": 176.53719999361783,
+      "p95_ms": 215.69099999032915,
+      "min_ms": 139.04589996673167,
+      "max_ms": 231.30119999404997,
+      "total_s": 5.24526719970163
+    },
+    "tokens": {
+      "mean_input_per_query": 198.1,
+      "total_input": 5943,
+      "output_per_query": 0
+    },
+    "parameters": 4205751296,
+    "devices": [
+      "cuda:0"
+    ],
+    "peak_gpu_memory_mb": 8118.43212890625,
+    "model": "Qwen/Qwen3.5-4B",
+    "load_s": 19.687333400011994,
+    "training_examples": 0
+  },
+  "rows": [
+    {
+      "query": "Hi! How are you doing today?",
+      "label": "direct_answer",
+      "predicted": "direct_answer",
+      "confidence": 0.9999384930776246,
+      "final_route": "direct_answer",
+      "input_tokens": 196,
+      "latency_ms": 186.59609998576343
+    },
+    {
+      "query": "What is 15 times 4?",
+      "label": "direct_answer",
+      "predicted": "direct_answer",
+      "confidence": 0.999958999149089,
+      "final_route": "direct_answer",
+      "input_tokens": 197,
+      "latency_ms": 195.45859994832426
+    },
+    {
+      "query": "What is the capital of France?",
+      "label": "direct_answer",
+      "predicted": "direct_answer",
+      "confidence": 0.999967076775767,
+      "final_route": "direct_answer",
+      "input_tokens": 195,
+      "latency_ms": 186.8641999317333
+    },
+    {
+      "query": "Who wrote the novel 1984?",
+      "label": "direct_answer",
+      "predicted": "direct_answer",
+      "confidence": 0.9997327013726884,
+      "final_route": "direct_answer",
+      "input_tokens": 198,
+      "latency_ms": 176.95989995263517
+    },
+    {
+      "query": "What is a database index?",
+      "label": "direct_answer",
+      "predicted": "direct_answer",
+      "confidence": 0.9991943626709534,
+      "final_route": "direct_answer",
+      "input_tokens": 194,
+      "latency_ms": 193.3100000023842
+    },
+    {
+      "query": "How many sides does a hexagon have?",
+      "label": "direct_answer",
+      "predicted": "direct_answer",
+      "confidence": 0.9999718201934429,
+      "final_route": "direct_answer",
+      "input_tokens": 197,
+      "latency_ms": 231.30119999404997
+    },
+    {
+      "query": "What does GPU stand for?",
+      "label": "direct_answer",
+      "predicted": "direct_answer",
+      "confidence": 0.9999510205414386,
+      "final_route": "direct_answer",
+      "input_tokens": 194,
+      "latency_ms": 149.23350000754
+    },
+    {
+      "query": "What is the difference between weather and climate?",
+      "label": "direct_answer",
+      "predicted": "direct_answer",
+      "confidence": 0.9995952104210447,
+      "final_route": "direct_answer",
+      "input_tokens": 197,
+      "latency_ms": 168.37570001371205
+    },
+    {
+      "query": "Convert 2 hours into seconds.",
+      "label": "direct_answer",
+      "predicted": "direct_answer",
+      "confidence": 0.9999739860814334,
+      "final_route": "direct_answer",
+      "input_tokens": 195,
+      "latency_ms": 180.69999990984797
+    },
+    {
+      "query": "What is supervised learning?",
+      "label": "direct_answer",
+      "predicted": "direct_answer",
+      "confidence": 0.999882512436741,
+      "final_route": "direct_answer",
+      "input_tokens": 193,
+      "latency_ms": 184.2181000392884
+    },
+    {
+      "query": "What is the price of Bitcoin today?",
+      "label": "web_search",
+      "predicted": "web_search",
+      "confidence": 0.9999469302215039,
+      "final_route": "web_search",
+      "input_tokens": 196,
+      "latency_ms": 157.84140001051128
+    },
+    {
+      "query": "Who won yesterday's Champions League match?",
+      "label": "web_search",
+      "predicted": "web_search",
+      "confidence": 0.9999092083843409,
+      "final_route": "web_search",
+      "input_tokens": 196,
+      "latency_ms": 215.69099999032915
+    },
+    {
+      "query": "What are the latest features in the newest Python release?",
+      "label": "web_search",
+      "predicted": "web_search",
+      "confidence": 0.9996461555785144,
+      "final_route": "web_search",
+      "input_tokens": 199,
+      "latency_ms": 172.86469996906817
+    },
+    {
+      "query": "What is the weather forecast for Alexandria this weekend?",
+      "label": "web_search",
+      "predicted": "web_search",
+      "confidence": 0.9999384288374632,
+      "final_route": "web_search",
+      "input_tokens": 198,
+      "latency_ms": 209.4915999332443
+    },
+    {
+      "query": "What is Nvidia's market capitalization right now?",
+      "label": "web_search",
+      "predicted": "web_search",
+      "confidence": 0.9999379022258204,
+      "final_route": "web_search",
+      "input_tokens": 198,
+      "latency_ms": 177.5569999590516
+    },
+    {
+      "query": "What are the top technology news stories today?",
+      "label": "web_search",
+      "predicted": "web_search",
+      "confidence": 0.9999577261385899,
+      "final_route": "web_search",
+      "input_tokens": 197,
+      "latency_ms": 170.87519995402545
+    },
+    {
+      "query": "What is the latest version of the transformers library?",
+      "label": "web_search",
+      "predicted": "web_search",
+      "confidence": 0.999882512436741,
+      "final_route": "web_search",
+      "input_tokens": 198,
+      "latency_ms": 177.52619995735586
+    },
+    {
+      "query": "How much is a liter of petrol in Egypt this month?",
+      "label": "web_search",
+      "predicted": "web_search",
+      "confidence": 0.9999576819853162,
+      "final_route": "web_search",
+      "input_tokens": 200,
+      "latency_ms": 184.8218000959605
+    },
+    {
+      "query": "Which AI models were released this week?",
+      "label": "web_search",
+      "predicted": "web_search",
+      "confidence": 0.9999444993642487,
+      "final_route": "web_search",
+      "input_tokens": 196,
+      "latency_ms": 176.1145000346005
+    },
+    {
+      "query": "What is the current USD to EUR exchange rate?",
+      "label": "web_search",
+      "predicted": "web_search",
+      "confidence": 0.9999684254950657,
+      "final_route": "web_search",
+      "input_tokens": 198,
+      "latency_ms": 148.41689995955676
+    },
+    {
+      "query": "How does Dense Passage Retrieval train its dual encoder with in-batch negatives?",
+      "label": "rag_retrieval",
+      "predicted": "rag_retrieval",
+      "confidence": 0.9992155895640281,
+      "final_route": "rag_retrieval",
+      "input_tokens": 204,
+      "latency_ms": 190.44290005695075
+    },
+    {
+      "query": "What is the difference between the RAG-Sequence and RAG-Token models?",
+      "label": "rag_retrieval",
+      "predicted": "rag_retrieval",
+      "confidence": 0.9978743620699899,
+      "final_route": "rag_retrieval",
+      "input_tokens": 204,
+      "latency_ms": 163.43369998503476
+    },
+    {
+      "query": "How does HyDE use a hypothetical document to perform zero-shot dense retrieval?",
+      "label": "rag_retrieval",
+      "predicted": "rag_retrieval",
+      "confidence": 0.9995985868310528,
+      "final_route": "rag_retrieval",
+      "input_tokens": 203,
+      "latency_ms": 152.26320002693683
+    },
+    {
+      "query": "For which entities does retrieval augmentation help most in the PopQA study?",
+      "label": "rag_retrieval",
+      "predicted": "rag_retrieval",
+      "confidence": 0.9986005217956351,
+      "final_route": "rag_retrieval",
+      "input_tokens": 202,
+      "latency_ms": 139.04589996673167
+    },
+    {
+      "query": "How does FLARE decide when to retrieve during long-form generation?",
+      "label": "rag_retrieval",
+      "predicted": "rag_retrieval",
+      "confidence": 0.9994539084716453,
+      "final_route": "rag_retrieval",
+      "input_tokens": 201,
+      "latency_ms": 150.45039996039122
+    },
+    {
+      "query": "What are reflection tokens in Self-RAG?",
+      "label": "rag_retrieval",
+      "predicted": "rag_retrieval",
+      "confidence": 0.9973487355071373,
+      "final_route": "rag_retrieval",
+      "input_tokens": 197,
+      "latency_ms": 143.2444000383839
+    },
+    {
+      "query": "What are the differences between Naive RAG, Advanced RAG, and Modular RAG?",
+      "label": "rag_retrieval",
+      "predicted": "rag_retrieval",
+      "confidence": 0.9939841579790435,
+      "final_route": "rag_retrieval",
+      "input_tokens": 207,
+      "latency_ms": 150.74379998259246
+    },
+    {
+      "query": "What actions can the retrieval evaluator in Corrective RAG trigger?",
+      "label": "rag_retrieval",
+      "predicted": "rag_retrieval",
+      "confidence": 0.9966883808349973,
+      "final_route": "rag_retrieval",
+      "input_tokens": 201,
+      "latency_ms": 163.86720002628863
+    },
+    {
+      "query": "How does RAPTOR build its tree of recursive summaries?",
+      "label": "rag_retrieval",
+      "predicted": "rag_retrieval",
+      "confidence": 0.9993076964098239,
+      "final_route": "rag_retrieval",
+      "input_tokens": 199,
+      "latency_ms": 158.54450000915676
+    },
+    {
+      "query": "What is HyDE?",
+      "label": "rag_retrieval",
+      "predicted": "rag_retrieval",
+      "confidence": 0.9769308930952175,
+      "final_route": "rag_retrieval",
+      "input_tokens": 193,
+      "latency_ms": 189.0136000001803
+    }
+  ]
+}
