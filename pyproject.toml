@@ -1,0 +1,17 @@
+[project]
+name = "adaptive-jev-rag"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "nourayman21k", email = "nour.ayman.fcis@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = []
+
+[project.scripts]
+adaptive-jev-rag = "adaptive_jev_rag:main"
+
+[build-system]
+requires = ["uv_build>=0.12.10,<0.13.0"]
+build-backend = "uv_build"
