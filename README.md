@@ -111,9 +111,26 @@ docker compose up --build
 Then open http://localhost:8501. The API (with interactive docs at http://localhost:8000/docs) is on port 8000.
 
 The backend image fine-tunes the router and builds the Chroma index **during the build**, so no model weights are stored
-in git and the container starts without downloading anything. It uses CPU-only PyTorch: BERT routes a query in
-milliseconds on a CPU, and the CUDA build would add several GB to the image. `.env` is passed to the container at
-runtime and never copied into an image. Without a `GROQ_API_KEY`, routing still works but `/ask` returns 503.
+in git and the container starts without downloading anything. `.env` is passed to the container at runtime and never
+copied into an image. Without a `GROQ_API_KEY`, routing still works but `/ask` returns 503. If another app already uses
+port 8501 or 8000, set `FRONTEND_PORT` or `BACKEND_PORT` (for example `$env:FRONTEND_PORT=8502` before `docker compose up`).
+
+Measured on the same laptop with Docker Desktop:
+
+| | Value |
+|---|---|
+| Image sizes | backend 1.78 GB, frontend 794 MB |
+| First build | about 20 min (dependencies, then 95 s of router training and 7 min of indexing on the container's CPU) |
+| Backend startup | 2.0 s |
+| Router latency | 55–80 ms per query on the CPU (8–10 ms on the GPU outside Docker) |
+| Router test accuracy | **93.3 %** (28/30) |
+
+The image uses CPU-only PyTorch, because the CUDA build would add several GB for a step that already takes well under
+a second. Training on the CPU uses the same recipe and seed as on the GPU, but the CPU and GPU draw different random
+dropout masks, so the model comes out slightly different: 93.3 % instead of 96.7 % on the 30 test queries, which is one
+query. It misses "What is HyDE?" (as the GPU model does) and sends "Hi! How are you doing today?" to `web_search`,
+because "today" is a strong web-search cue in its training data. The app's sidebar shows the score of whichever router
+it is running.
 
 ### Run without Docker
 
