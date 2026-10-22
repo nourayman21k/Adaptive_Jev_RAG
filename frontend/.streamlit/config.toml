@@ -1,0 +1,42 @@
+# Based on Streamlit's "minimal" dark template
+[theme]
+base = "dark"
+primaryColor = "#6366f1"
+backgroundColor = "#111114"
+secondaryBackgroundColor = "#1d1d24"
+codeBackgroundColor = "#1d1d24"
+textColor = "#f4f4f5"
+linkColor = "#a5b4fc"
+borderColor = "#2e2e3a"
+showWidgetBorder = false
+showSidebarBorder = false
+baseRadius = "10px"
+buttonRadius = "10px"
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+codeFont = "'JetBrains Mono':https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+codeFontSize = "0.85rem"
+codeTextColor = "#e4e4e7"
+baseFontSize = 15
+headingFontSizes = ["30px", "22px", "18px", "16px", "14px", "12px"]
+headingFontWeights = [700, 600, 600, 500, 500, 500]
+linkUnderline = false
+chartCategoricalColors = ["#6366f1", "#22c55e", "#8b5cf6", "#3b82f6", "#f59e0b", "#ef4444", "#14b8a6"]
+violetColor = "#8b5cf6"
+blueColor = "#3b82f6"
+greenColor = "#22c55e"
+yellowColor = "#f59e0b"
+orangeColor = "#f97316"
+redColor = "#ef4444"
+paddingTop = "1.5rem"
+
+[theme.sidebar]
+backgroundColor = "#0a0a0d"
+secondaryBackgroundColor = "#17171d"
+codeBackgroundColor = "#17171d"
+borderColor = "#24242e"
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false

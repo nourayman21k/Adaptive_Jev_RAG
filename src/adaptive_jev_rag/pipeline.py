@@ -127,7 +127,9 @@ def web_search(query: str) -> list[Document]:
 def format_docs(docs: List[Document]) -> str:
     parts = []
     for doc in docs:
-        source = os.path.basename(doc.metadata.get("source", "unknown"))
+        source = doc.metadata.get("source", "unknown")
+        if not source.startswith("http"):  # web results keep their full URL so they can be cited
+            source = os.path.basename(source)
         page = doc.metadata.get("page")
         label = f"{source}, p. {page + 1}" if page is not None else source
         parts.append(f"[{label}]\n{doc.page_content}")

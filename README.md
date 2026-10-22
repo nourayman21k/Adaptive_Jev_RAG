@@ -46,6 +46,9 @@ If the router's confidence is below `THRESHOLD = 0.7`, the query goes to `rag_re
 | [eval/ragas_testset.json](eval/ragas_testset.json) | 10 RAGAS questions, one per paper, with reference answers written from the papers |
 | [results/](results/) | Every number in this README, as JSON/CSV (see [Result files](#result-files)) |
 | [pdf/](pdf/) | The 10 papers in the knowledge base |
+| [src/adaptive_jev_rag/](src/adaptive_jev_rag/) | The backend: BERT router, router training, Chroma knowledge base, pipeline and FastAPI app |
+| [frontend/](frontend/) | The Streamlit web app (chat, router lab, benchmarks) and its tests |
+| [backend/](backend/), [docker-compose.yml](docker-compose.yml) | Docker images for the backend and frontend |
 | [test.py](test.py) | Standalone script that tests the JEV router on its own |
 
 The knowledge base: DPR (2004.04906), RAG (2005.11401), HyDE (2212.10496), *When Not to Trust Language Models* / PopQA
@@ -74,6 +77,76 @@ table at the end of the BERT notebook reads `results/router_jev.json`, which the
 - **Groq free tier:** `gpt-oss-120b` allows 8,000 tokens per minute and **200,000 tokens per day**. One full run of both
   notebooks uses roughly that daily allowance (the 10 RAGAS questions alone use 68,038 tokens). The RAGAS judge
   (`gpt-oss-20b`) has its own, separate limits.
+
+## Web app
+
+The pipeline from `adaptive_bert.ipynb` also runs as a web app: a **FastAPI backend** with the fine-tuned BERT router,
+and a **Streamlit frontend** that talks to it over HTTP.
+
+```mermaid
+flowchart LR
+    U[Browser] --> F["Streamlit frontend<br/>:8501"]
+    F -- "POST /route, POST /ask" --> B["FastAPI backend<br/>:8000"]
+    B --> R[Fine-tuned BERT router]
+    B --> C[(Chroma index<br/>944 chunks)]
+    B --> G[Groq gpt-oss-120b]
+    B --> D[DuckDuckGo]
+```
+
+The frontend has three pages:
+
+- **Chat:** ask anything. Each answer shows a step-by-step timeline (the router's probabilities for each route, then
+  every pipeline step such as retrieval, grading, query rewriting and web search), followed by badges for the route,
+  confidence, time and tokens, and the sources it used.
+- **Router lab:** try the BERT router alone (no LLM call, no API key needed), or route a whole list of questions at once.
+- **Benchmarks:** the RAGAS scores, the JEV-vs-BERT comparison and the JEV speed-up results from `results/`.
+
+### Run with Docker
+
+```powershell
+copy .env.example .env       # then put your GROQ_API_KEY in .env
+docker compose up --build
+```
+
+Then open http://localhost:8501. The API (with interactive docs at http://localhost:8000/docs) is on port 8000.
+
+The backend image fine-tunes the router and builds the Chroma index **during the build**, so no model weights are stored
+in git and the container starts without downloading anything. It uses CPU-only PyTorch: BERT routes a query in
+milliseconds on a CPU, and the CUDA build would add several GB to the image. `.env` is passed to the container at
+runtime and never copied into an image. Without a `GROQ_API_KEY`, routing still works but `/ask` returns 503.
+
+### Run without Docker
+
+```powershell
+uv run python -m adaptive_jev_rag.train_router      # fine-tune BERT, save to models/bert-router (5 s on a GPU)
+uv run python -m adaptive_jev_rag.knowledge_base    # build the Chroma index in chroma_db/ (about 2 min on a CPU)
+uv run uvicorn adaptive_jev_rag.api:app --app-dir src --port 8000
+cd frontend; uv run streamlit run streamlit_app.py  # in a second terminal
+```
+
+`train_router` uses the same recipe as the notebook (8 epochs, seed 42) and scores the held-out test set: **96.7 %**,
+the same as `adaptive_bert.ipynb`. The score is saved in `models/bert-router/metrics.json`, and the app's sidebar shows it.
+
+### API
+
+| Endpoint | Body | Returns |
+|---|---|---|
+| `GET /health` | | Router device and test accuracy, number of indexed chunks, LLM name, startup time |
+| `POST /route` | `{"query": "..."}` | Route, confidence, probability for each route, route after the 0.7 fallback, tokens read, latency |
+| `POST /ask` | `{"query": "..."}` | Everything from `/route`, plus the answer, node path, rewritten query, sources, total time and Groq tokens |
+
+Two changes from the notebook: the grader scores the 6 retrieved chunks in parallel (3 at a time, to stay under Groq's
+per-minute limit), and web results are labelled with their full URL so the generator can cite them.
+
+### Tests
+
+[frontend/tests/test_app.py](frontend/tests/test_app.py) runs the app headless with Streamlit's `AppTest`. It renders
+the benchmarks page, checks that the sidebar sees the backend, routes a question in the router lab, and answers one chat
+message end to end. Start the backend first, then:
+
+```powershell
+cd frontend; uv run pytest tests -q
+```
 
 ## Results
 

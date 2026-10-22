@@ -11,3 +11,7 @@ wheels/
 
 # Secrets
 .env
+
+# Trained router weights and the Chroma index (rebuilt by train_router / knowledge_base or in Docker)
+models/
+chroma_db/

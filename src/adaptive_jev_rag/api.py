@@ -28,6 +28,7 @@ async def lifespan(app: FastAPI):
     load_dotenv()
     start = time.perf_counter()
     router = BertRouter()
+    router.route("warm up")  # the first forward pass is slow (CUDA/kernel setup); pay it before the first user does
     store = knowledge_base.load(knowledge_base.load_embeddings())
     services["pipeline"] = AdaptivePipeline(router, store, make_llm())
     services["chunks"] = store._collection.count()
