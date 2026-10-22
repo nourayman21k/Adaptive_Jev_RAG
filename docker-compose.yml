@@ -8,7 +8,7 @@ services:
       - path: .env  # needs GROQ_API_KEY; without it the API can still route but not answer
         required: false
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:8000"
     restart: unless-stopped
 
   frontend:
@@ -19,7 +19,7 @@ services:
     environment:
       BACKEND_URL: http://backend:8000
     ports:
-      - "8501:8501"
+      - "${FRONTEND_PORT:-8501}:8501"  # e.g. FRONTEND_PORT=8502 if another app already uses 8501
     depends_on:
       backend:
         condition: service_healthy
